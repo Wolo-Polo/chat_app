@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><%= title %></title>
+    </head>
+    <body>
+        <div>
+            <div id="messages"></div>
+        </div>
+        <div>
+            <form action="" id='inputMesssage'>
+                <input type="text" id="message" placeholder="Tin nhắn"/><br/>
+                <input type="text" id="group" placeholder="Danh sách người nhận"/>
+                <input type="submit" value="Gửi" />
+            </form>
+        </div>
+
+        <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H" crossorigin="anonymous"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        
+        <script>
+            const socket = io();
+            
+            $('form').submit(() => {
+                let obj = {};
+                obj['message'] = $('#message').val();
+                obj['sender'] = 1;
+                obj['group'] = 22;
+                socket.emit('chat', obj);
+                $('#message').val('');
+                return false;
+            });
+
+            socket.on('chat', (msg_obj) => {
+                $('#messages').append($('<li>').text(msg_obj.sender + ": " + msg_obj.message));
+            });
+
+        </script>
+    </body>
+</html>
