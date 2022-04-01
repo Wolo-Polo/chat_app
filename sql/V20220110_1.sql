@@ -17,6 +17,7 @@ create table if not exists tbl_message (
 create table if not exists tbl_group (
     id bigint auto_increment primary key,
     name varchar(50),
+    last_message_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

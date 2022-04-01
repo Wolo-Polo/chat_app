@@ -1,40 +1,323 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title><%= title %></title>
+        <title>Chat app</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     </head>
     <body>
-        <div>
-            <div id="messages"></div>
+        
+        <div class="d-flex justify-content-between p-3 bg-primary">
+            <div class="text-white">
+                <h6>Chat app</h6>
+            </div>
+            <div>
+                <a class="mr-2 text-white" href="/profile"  style="text-decoration: none;"><%= user.name %></a>
+                <a href="/logout" class="text-white" style="text-decoration: none;">Đăng xuất</a>
+            </div>
         </div>
-        <div>
-            <form action="" id='inputMesssage'>
-                <input type="text" id="message" placeholder="Tin nhắn"/><br/>
-                <input type="text" id="group" placeholder="Danh sách người nhận"/>
-                <input type="submit" value="Gửi" />
-            </form>
+        <div class="main d-flex flex-row">
+            <div class="list_group d-flex flex-column col-2 border p-0" id="list_group">
+                <div style="background-color: #0077ff8f;" class="d-flex justify-content-center">
+                    <span class="col-8 p-2">Tin nhắn gần đây</span>
+                    <button class="btn btn-primary" data-toggle="modal" data-target="#addNewMessage">+</button>
+                </div>
+                <div id="group_list" class="overflow-auto " style="height: 515px;">
+
+                </div>
+            </div>
+            <div class="message_box col-8 d-flex flex-column-reverse" id="message_box">
+                <div class="form-group">
+                    <form action="" id='inputMesssage' class="d-flex flex-row mt-2">
+                        <input type="text" id="message" placeholder="Tin nhắn..." style="width: 95%;" class="form-control mr-1 p-1 pl-2"/><br/>
+                        <input type="hidden" id="sender" placeholder="Người gửi" value="<%= user.id %>"/>
+                        <input type="hidden" id="group" placeholder="Danh sách người nhận" value="<%= group.id %>"/>
+                        <input type="submit" value="Gửi" class="btn btn-primary" />
+                    </form>
+                </div>
+                <div class="d-flex flex-column overflow-auto pt-2" id="message_list" style="height: 515px;">
+                    
+                </div>
+            </div>
+            <div class="d-flex flex-column col-2 border p-0">
+                <div class="d-flex justify-content-center p-2" style="background-color: #0077ff8f;">Danh sách online</div>
+                <div id="online_list" class="overflow-auto " style="height: 515px;">
+
+                </div>
+            </div>
         </div>
 
+        <!-- Modal add new messag -->
+        <div class="modal fade" id="addNewMessage" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Tin nhắn mới</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div>Tin nhắn:</div>
+                        <div>
+                            <textarea class="form-control" placeholder="Nội dung" id="new_message"></textarea>
+                        </div>
+                        <div class="mt-1">Tên nhóm:
+                            <input class="form-control" placeholder="Tên group" id="group_name" />
+                        </div>
+                        <div class="mt-1">Người nhận: <span id="list_receiver"></span>
+                            <input class="form-control" placeholder="search" id="search_user" onchange="searchUser()" />
+                        </div>
+                        <div class="" >
+                            <ul class="list-group" id="list_user_search">
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="clear()">Hủy</button>
+                        <button type="button" class="btn btn-primary" onclick="sendNewMessage()">Gửi</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <style>
+            html, body {
+                height: 100%;
+            }
+            a {
+                text-decoration: none !important;
+            }
+        </style>
         <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H" crossorigin="anonymous"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
         
         <script>
             const socket = io();
+
+            $('#sender').val(<%=user.id%>);
             
             $('form').submit(() => {
-                let obj = {};
-                obj['message'] = $('#message').val();
-                obj['sender'] = 1;
-                obj['group'] = 22;
-                socket.emit('chat', obj);
-                $('#message').val('');
-                return false;
+                if($('#message').val() != "") {
+                    let obj = {};
+                    obj['message'] = $('#message').val();
+                    obj['id_sender'] = $('#sender').val();
+                    obj['id_group'] = $('#group').val();
+                    socket.emit('chat', obj);
+                    $('#message').val('');
+                    $("#message_list").append(`<div class="d-flex justify-content-end">
+                        <div class="p-2 bg-info rounded-left m-2">
+                            ${obj.message}
+                        </div>
+                    </div>`);
+                    
+                    var data = {};
+                    data['id_group'] = group_selected;
+                    fetch('http://localhost:3000/user_group_seen',{
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    })
+                    .then(() => {
+                        renderListGroup();
+                    })
+                    
+                    $("#message_list").scrollTop(10000);
+                    return false;
+                } else {
+                    return false;
+                }
             });
 
-            socket.on('chat', (msg_obj) => {
-                $('#messages').append($('<li>').text(msg_obj.sender + ": " + msg_obj.message));
+            var userInf = {};
+            userInf["id"] = <%=user.id%>;
+            userInf["name"] = '<%=user.name%>';
+            socket.emit('online', userInf);
+            socket.on('online', (users) => {
+                $('#online_list').empty();
+                Object.keys(users).forEach(id =>{
+                    if(id != socket.id) {
+                        $('#online_list').append(`<div class="list-group-item">
+                            <a href="#" class="m-2" style=" text-decoration: none;">${users[id].name}</a>
+                            <div class="badge badge-success"> </div>
+                        </div>`);
+                    }
+                });
             });
 
+            // socket.on('chat', (msg_obj) => {
+            //     $('#messages').append($('<div>').text(msg_obj.id_sender + " gửi tới nhóm " + msg_obj.group + ": " + msg_obj.message));
+            // });
+            
+            var delaySearch;
+            function searchUser() {
+                clearTimeout(delaySearch);
+                delaySearch = setTimeout(() => {
+                    var data = {};
+                    data['search'] = $('#search_user').val();
+                    fetch('http://localhost:3000/users',{
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        data = data.filter(i => i.id != <%=user.id%>);
+                        $('#list_user_search').empty();
+                        for(let i = 0; i<data.length; i++){
+                            $('#list_user_search').append(`<li class="list-group-item"><a href="#" onclick="addUser({id:${data[i].id}, name:'${data[i].name}'})">${data[i].name}</a></li>`);
+                        }
+                    });
+                }, 500);
+            }
+
+            var list_user_on_group = [];
+            function addUser(user) {
+                if(!list_user_on_group.find(i => i.id == user.id)){
+                    $("#list_receiver").append(user.name + ";");
+                    list_user_on_group.push(user);
+                }
+            }
+
+            function clear() {
+                list_user_on_group = [];
+                $("#list_receiver").text('');
+                $('#list_user_search').empty();
+                $('#search_user').val('');
+                $('#new_message').val('');
+            }
+
+            function sendNewMessage() {
+                let msg = {};
+                msg['message'] = $('#new_message').val();
+                msg['id_sender'] = <%=user.id%>;
+                list_user_on_group.push({id:<%=user.id%>, name:'<%=user.name%>'});
+                msg['list_user'] = list_user_on_group;
+                msg['group_name'] = $('#group_name').val();
+                socket.emit('chat', msg);
+                $('#addNewMessage').modal('hide');
+                clear();
+
+                setTimeout(() => renderListGroup(), 1000);
+            }
+
+            var group_selected;
+            socket.on('private message', function(msg){
+                if(group_selected == msg.group.id) {
+                    $("#message_list").append(`<div class="d-flex justify-content-start">
+                                <div class="rounded-circle bg-warning pt-2 mt-2" style="
+                                    width: 40px;
+                                    height: 40px;
+                                    overflow: hidden !important;
+                                ">${msg.sender.name}</div>
+                                <div class="p-2 bg-primary rounded-right ml-1 mt-2 mb-2">
+                                    ${msg.message.message}
+                                </div>
+                            </div>`);
+
+                    // $("#message_list").append(`<div class="list-group-item">${msg.sender.name}: ${msg.message.message}</div>`);
+                    $("#message_list").scrollTop($("#message_list").height());
+                    var data = {};
+                    data['id_group'] = group_selected;
+
+                    fetch('http://localhost:3000/user_group_seen',{
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    })
+                    .then(() => renderListGroup())
+                } 
+
+                renderListGroup()
+            });
+
+            function renderListGroup() {
+                var data = {};
+                data['id_user'] = <%=user.id%>;
+                fetch('http://localhost:3000/groups',{
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    $("#group_list").empty();
+                    for(let i = 0; i<data.length; i++){
+                        
+                        if(data[i].seen == 1) {
+                            $('#group_list').append(`<div class="list-group-item overflow-hidden"><a href="#" onclick="chatGroup(${data[i].id})">${data[i].name}</a></div>`);
+                        } else {
+                            $('#group_list').append(`<div class="list-group-item overflow-hidden font-weight-bold"><a href="#" onclick="chatGroup(${data[i].id})">${data[i].name}</a></div>`);
+                        }
+                    }
+                });
+            }
+            renderListGroup();
+
+            async function chatGroup(group_id) {
+                $('#group').val(group_id);
+                group_selected=group_id;
+
+                var data = {};
+                data['id_group'] = group_id;
+
+                let users;
+                await fetch('http://localhost:3000/users_in_group',{
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    users = data;
+                });
+
+                await fetch('http://localhost:3000/messages',{
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    $("#message_list").empty();
+                    for(let i = 0; i<data.length; i++){
+                        let user = users.find(u => u.id == data[i].id_sender);
+                        if(user.id == <%=user.id%>) {
+                            $("#message_list").append(`<div class="d-flex justify-content-end">
+                                <div class="p-2 bg-info rounded-left m-2">
+                                    ${data[i].message}
+                                </div>
+                            </div>`);
+                        } else {
+                            $("#message_list").append(`<div class="d-flex justify-content-start">
+                                <div class="rounded-circle bg-warning pt-2 mt-2" style="
+                                    width: 40px;
+                                    height: 40px;
+                                    overflow: hidden !important;
+                                ">${user.name}</div>
+                                <div class="p-2 bg-primary rounded-right ml-1 mt-2 mb-2">
+                                    ${data[i].message}
+                                </div>
+                            </div>`);
+                        }
+                    }
+                })
+                .then(() => {
+                    $("#message_list").scrollTop(10000);
+                    renderListGroup();
+                });
+            }
         </script>
     </body>
 </html>

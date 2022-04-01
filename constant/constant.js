@@ -1,11 +1,11 @@
 require('dotenv').config();
-console.log(process.env.HOST);
+//console.log(process.env.HOST);
 
 const DB_CONFIG = {
-    host: process.env.HOST,
-    port: process.env.PORT,
-    user: process.env.USER_NAME,
-    password: process.env.PASSWORD,
-    database: process.env.DATABASE,
+    host: 'localhost',
+    port: 3336,
+    user: 'chat_app',
+    password: 'Password123',
+    database: 'chat_app',
 };
 module.exports = { DB_CONFIG };
